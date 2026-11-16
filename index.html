@@ -1,15 +1,153 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <title>मेरा क्रिकेट लाइव</title>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏏 क्रिकेट लाइव स्कोर</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .match-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+        }
+        .match-card.live { border-left-color: #e74c3c; }
+        .match-card.finished { border-left-color: #95a5a6; }
+        .match-card.upcoming { border-left-color: #f39c12; }
+
+        .competition {
+            font-size: 13px;
+            color: #7f8c8d;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .team-name {
+            font-size: 17px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .team-score {
+            font-size: 19px;
+            font-weight: bold;
+            color: #e67e22;
+            background: #fdf2e9;
+            padding: 2px 10px;
+            border-radius: 5px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        .status-live { background: #ffeaea; color: #e74c3c; }
+        .status-finished { background: #eaeaea; color: #7f8c8d; }
+        .status-upcoming { background: #fff4e6; color: #f39c12; }
+
+        .loading { text-align: center; color: #7f8c8d; font-size: 16px; }
+        .error { text-align: center; color: #e74c3c; font-weight: bold; }
+    </style>
 </head>
-<body style="text-align:center; font-family:sans-serif; padding-top:50px;">
-    <h1>🏏 क्रिकेट लाइव स्कोर</h1>
-    <div style="font-size:24px; margin:20px;">
-        <span>टीम A: 120/3</span> vs <span>टीम B: 待定</span>
+<body>
+    <h1>🏏 लाइव क्रिकेट स्कोर</h1>
+    <div class="subtitle">Powered by SportScore</div>
+
+    <div id="matches-container">
+        <div class="loading">⏳ लाइव स्कोर लोड हो रहा है...</div>
     </div>
-    <p>यह एक सरल डेमो पेज है, जिसे बाद में लाइव डेटा से जोड़ा जा सकता है।</p>
+
+    <script>
+        // ⚠️ यहाँ आपका Cloudflare वाला लिंक है
+        const API_URL = "https://swing-pod-faq-student.trycloudflare.com/api/live-matches";
+
+        async function fetchMatches() {
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { "ngrok-skip-browser-warning": "true" } 
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    displayMatches(data.data);
+                } else {
+                    document.getElementById('matches-container').innerHTML = 
+                        '<div class="loading">अभी कोई लाइव मैच नहीं है।</div>';
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('matches-container').innerHTML = 
+                    '<div class="error">डेटा लोड करने में समस्या हुई। कृपया API चालू होने की जाँच करें।</div>';
+            }
+        }
+
+        function displayMatches(matches) {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+
+            matches.forEach(match => {
+                const card = document.createElement('div');
+                card.className = `match-card ${match.status}`;
+
+                let statusClass = 'status-live';
+                let statusText = match.status_text || match.status;
+                
+                if (match.status === 'finished') statusClass = 'status-finished';
+                if (match.status === 'upcoming') statusClass = 'status-upcoming';
+
+                let homeScore = match.home_score || 'N/A';
+                let awayScore = match.away_score || 'N/A';
+
+                card.innerHTML = `
+                    <div class="competition">${match.competition || 'Cricket Match'}</div>
+                    
+                    <div class="team-row">
+                        <div class="team-name">${match.home}</div>
+                        <div class="team-score">${homeScore}</div>
+                    </div>
+                    
+                    <div class="team-row">
+                        <div class="team-name">${match.away}</div>
+                        <div class="team-score">${awayScore}</div>
+                    </div>
+                    
+                    <div class="status-badge ${statusClass}">${statusText}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchMatches();
+        setInterval(fetchMatches, 30000); 
+    </script>
 </body>
 </html>
