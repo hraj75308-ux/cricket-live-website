@@ -76,6 +76,23 @@
 
         .loading { text-align: center; color: #7f8c8d; font-size: 16px; }
         .error { text-align: center; color: #e74c3c; font-weight: bold; }
+
+        /* बटन का डिज़ाइन */
+        .squad-btn {
+            display: inline-block; 
+            margin-top: 12px; 
+            background: #3498db; 
+            color: white; 
+            padding: 8px 15px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-size: 14px; 
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .squad-btn:hover {
+            background: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -87,14 +104,12 @@
     </div>
 
     <script>
-        // ⚠️ यहाँ आपका Cloudflare वाला लिंक है
-        
-const API_URL = "https://robert-planner-tel-highest.trycloudflare.com/api/live-matches";
+        // ⚠️ यहाँ अपना नया Cloudflare वाला लिंक डालें
+        const API_URL = "https://robert-planner-tel-highest.trycloudflare.com/api/live-matches";
+
         async function fetchMatches() {
             try {
-                const response = await fetch(API_URL, {
-                    headers: { "ngrok-skip-browser-warning": "true" } 
-                });
+                const response = await fetch(API_URL);
                 const data = await response.json();
                 
                 if (data.success && data.data.length > 0) {
@@ -127,6 +142,10 @@ const API_URL = "https://robert-planner-tel-highest.trycloudflare.com/api/live-m
                 let homeScore = match.home_score || 'N/A';
                 let awayScore = match.away_score || 'N/A';
 
+                // Cricbuzz पर सर्च करने के लिए टीम के नाम को URL फ्रेंडली बनाएं
+                const searchQuery = `${match.home} vs ${match.away}`.replace(/ /g, '+');
+                const squadUrl = `https://www.cricbuzz.com/search?q=${searchQuery}`;
+
                 card.innerHTML = `
                     <div class="competition">${match.competition || 'Cricket Match'}</div>
                     
@@ -141,6 +160,9 @@ const API_URL = "https://robert-planner-tel-highest.trycloudflare.com/api/live-m
                     </div>
                     
                     <div class="status-badge ${statusClass}">${statusText}</div>
+                    
+                    <!-- स्क्वाड बटन -->
+                    <a href="${squadUrl}" target="_blank" class="squad-btn">🔍 View Squad & Photos</a>
                 `;
                 container.appendChild(card);
             });
